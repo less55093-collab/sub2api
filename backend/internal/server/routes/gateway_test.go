@@ -33,7 +33,7 @@ func newGatewayRoutesTestRouter(platform ...string) *gin.Engine {
 			groupID := int64(1)
 			c.Set(string(servermiddleware.ContextKeyAPIKey), &service.APIKey{
 				GroupID: &groupID,
-				Group:   &service.Group{Platform: groupPlatform},
+				Group:   &service.Group{ID: groupID, Platform: groupPlatform, Status: service.StatusActive, Hydrated: true},
 			})
 			c.Next()
 		}),

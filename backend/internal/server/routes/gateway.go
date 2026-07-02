@@ -1,7 +1,10 @@
 package routes
 
 import (
+	"bytes"
+	"io"
 	"net/http"
+	"strings"
 
 	"github.com/Wei-Shaw/sub2api/internal/config"
 	"github.com/Wei-Shaw/sub2api/internal/handler"
@@ -9,6 +12,7 @@ import (
 	"github.com/Wei-Shaw/sub2api/internal/service"
 
 	"github.com/gin-gonic/gin"
+	"github.com/tidwall/gjson"
 )
 
 // RegisterGatewayRoutes 注册 API 网关路由（Claude/OpenAI/Gemini 兼容）
@@ -32,34 +36,37 @@ func RegisterGatewayRoutes(
 	requireGroupGoogle := middleware.RequireGroupAssignment(settingService, middleware.GoogleErrorWriter)
 
 	isOpenAIResponsesCompatibleGatewayPlatform := func(c *gin.Context) bool {
-		switch getGroupPlatform(c) {
-		case service.PlatformOpenAI, service.PlatformGrok:
+		platform := getGroupPlatform(c)
+		if platform == service.PlatformOpenAI || platform == service.PlatformGrok {
 			return true
-		default:
-			return false
 		}
+		if requestModelLooksOpenAICompatible(c) {
+			return hasAPIKeyPlatform(c, service.PlatformOpenAI) || hasAPIKeyPlatform(c, service.PlatformGrok)
+		}
+		return false
 	}
 	isOpenAIGatewayPlatform := func(c *gin.Context) bool {
-		return getGroupPlatform(c) == service.PlatformOpenAI
+		return getGroupPlatform(c) == service.PlatformOpenAI || hasAPIKeyPlatform(c, service.PlatformOpenAI)
 	}
 	imagesHandler := func(c *gin.Context) {
-		switch getGroupPlatform(c) {
-		case service.PlatformOpenAI:
-			h.OpenAIGateway.Images(c)
-		case service.PlatformGrok:
+		if prefersGrokMediaPlatform(c) {
 			h.OpenAIGateway.GrokImages(c)
-		default:
-			service.MarkOpsClientBusinessLimited(c, service.OpsClientBusinessLimitedReasonLocalFeatureGate)
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": gin.H{
-					"type":    "not_found_error",
-					"message": "Images API is not supported for this platform",
-				},
-			})
+			return
 		}
+		if hasAPIKeyPlatform(c, service.PlatformOpenAI) {
+			h.OpenAIGateway.Images(c)
+			return
+		}
+		service.MarkOpsClientBusinessLimited(c, service.OpsClientBusinessLimitedReasonLocalFeatureGate)
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": gin.H{
+				"type":    "not_found_error",
+				"message": "Images API is not supported for this platform",
+			},
+		})
 	}
 	videoGenerationHandler := func(c *gin.Context) {
-		if getGroupPlatform(c) == service.PlatformGrok {
+		if hasAPIKeyPlatform(c, service.PlatformGrok) {
 			h.OpenAIGateway.GrokVideoGeneration(c)
 			return
 		}
@@ -72,7 +79,7 @@ func RegisterGatewayRoutes(
 		})
 	}
 	videoStatusHandler := func(c *gin.Context) {
-		if getGroupPlatform(c) == service.PlatformGrok {
+		if hasAPIKeyPlatform(c, service.PlatformGrok) {
 			h.OpenAIGateway.GrokVideoStatus(c)
 			return
 		}
@@ -150,7 +157,7 @@ func RegisterGatewayRoutes(
 			h.Gateway.ChatCompletions(c)
 		})
 		gateway.POST("/embeddings", func(c *gin.Context) {
-			if getGroupPlatform(c) != service.PlatformOpenAI {
+			if !hasAPIKeyPlatform(c, service.PlatformOpenAI) {
 				service.MarkOpsClientBusinessLimited(c, service.OpsClientBusinessLimitedReasonLocalFeatureGate)
 				c.JSON(http.StatusNotFound, gin.H{
 					"error": gin.H{
@@ -214,7 +221,7 @@ func RegisterGatewayRoutes(
 		h.Gateway.ChatCompletions(c)
 	})
 	r.POST("/embeddings", bodyLimit, clientRequestID, opsErrorLogger, endpointNorm, gin.HandlerFunc(apiKeyAuth), requireGroupAnthropic, func(c *gin.Context) {
-		if getGroupPlatform(c) != service.PlatformOpenAI {
+		if !hasAPIKeyPlatform(c, service.PlatformOpenAI) {
 			service.MarkOpsClientBusinessLimited(c, service.OpsClientBusinessLimitedReasonLocalFeatureGate)
 			c.JSON(http.StatusNotFound, gin.H{
 				"error": gin.H{
@@ -273,4 +280,48 @@ func getGroupPlatform(c *gin.Context) string {
 		return ""
 	}
 	return apiKey.Group.Platform
+}
+
+func hasAPIKeyPlatform(c *gin.Context, platform string) bool {
+	apiKey, ok := middleware.GetAPIKeyFromContext(c)
+	if !ok {
+		return false
+	}
+	return service.APIKeyHasCandidateGroup(apiKey, platform)
+}
+
+func requestModelLooksOpenAICompatible(c *gin.Context) bool {
+	model := strings.ToLower(strings.TrimSpace(peekJSONRequestModel(c)))
+	if model == "" {
+		return false
+	}
+	return strings.HasPrefix(model, "gpt-") ||
+		strings.HasPrefix(model, "codex") ||
+		strings.HasPrefix(model, "o1") ||
+		strings.HasPrefix(model, "o3") ||
+		strings.HasPrefix(model, "o4") ||
+		strings.HasPrefix(model, "grok")
+}
+
+func prefersGrokMediaPlatform(c *gin.Context) bool {
+	if getGroupPlatform(c) == service.PlatformGrok {
+		return true
+	}
+	model := strings.ToLower(strings.TrimSpace(peekJSONRequestModel(c)))
+	return strings.HasPrefix(model, "grok") && hasAPIKeyPlatform(c, service.PlatformGrok)
+}
+
+func peekJSONRequestModel(c *gin.Context) string {
+	if c == nil || c.Request == nil || c.Request.Body == nil {
+		return ""
+	}
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		return ""
+	}
+	c.Request.Body = io.NopCloser(bytes.NewReader(body))
+	if len(body) == 0 || !gjson.ValidBytes(body) {
+		return ""
+	}
+	return gjson.GetBytes(body, "model").String()
 }
