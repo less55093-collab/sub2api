@@ -129,7 +129,11 @@ func (h *GatewayHandler) ChatCompletions(c *gin.Context) {
 		APIKeyID:  apiKey.ID,
 	}
 	sessionHash := h.gatewayService.GenerateSessionHash(parsedReq)
-	groupPlatform := gatewayRequestPlatformForAPIKey(apiKey, "")
+	routePlatform := ""
+	if value, ok := middleware2.GetRoutePlatformIntentFromContext(c); ok {
+		routePlatform = value
+	}
+	groupPlatform := gatewayRequestPlatformForAPIKey(apiKey, "", routePlatform)
 	selectionSessionHash := sessionHash
 	if groupPlatform == service.PlatformGemini && selectionSessionHash != "" {
 		selectionSessionHash = "gemini:" + selectionSessionHash

@@ -97,9 +97,20 @@ func wrapUsageRecordTaskContext(parent context.Context, task service.UsageRecord
 	}
 }
 
-func openAICompatibleRequestPlatform(apiKey *service.APIKey) string {
+func routePlatformIntent(c *gin.Context) string {
+	platform, _ := middleware2.GetRoutePlatformIntentFromContext(c)
+	return strings.TrimSpace(platform)
+}
+
+func openAICompatibleRequestPlatform(apiKey *service.APIKey, routePlatforms ...string) string {
 	if apiKey == nil {
 		return service.PlatformOpenAI
+	}
+	if len(routePlatforms) > 0 {
+		routePlatform := strings.TrimSpace(routePlatforms[0])
+		if (routePlatform == service.PlatformOpenAI || routePlatform == service.PlatformGrok) && service.APIKeyHasCandidateGroup(apiKey, routePlatform) {
+			return routePlatform
+		}
 	}
 	if apiKey.Group != nil && apiKey.Group.Platform == service.PlatformGrok {
 		return service.PlatformGrok
@@ -304,7 +315,7 @@ func (h *OpenAIGatewayHandler) Responses(c *gin.Context) {
 
 	imageIntent := service.IsImageGenerationIntent("/v1/responses", reqModel, body)
 	if imageIntent {
-		if group := singleOpenAICompatibleCandidateGroup(apiKey, ""); group != nil && !service.GroupAllowsImageGeneration(group) {
+		if group := singleOpenAICompatibleCandidateGroup(apiKey, routePlatformIntent(c)); group != nil && !service.GroupAllowsImageGeneration(group) {
 			h.errorResponse(c, http.StatusForbidden, "permission_error", service.ImageGenerationPermissionMessage())
 			return
 		}
@@ -333,7 +344,7 @@ func (h *OpenAIGatewayHandler) Responses(c *gin.Context) {
 
 	// Get subscription info (may be nil)
 	subscription, _ := middleware2.GetSubscriptionFromContext(c)
-	requestPlatform := openAICompatibleRequestPlatform(apiKey)
+	requestPlatform := openAICompatibleRequestPlatform(apiKey, routePlatformIntent(c))
 
 	service.SetOpsLatencyMs(c, service.OpsAuthLatencyMsKey, time.Since(requestStart).Milliseconds())
 	routingStart := time.Now()
@@ -718,7 +729,7 @@ func (h *OpenAIGatewayHandler) Messages(c *gin.Context) {
 		zap.Int64("api_key_id", apiKey.ID),
 		zap.Any("group_id", apiKey.GroupID),
 	)
-	if group := singleOpenAICompatibleCandidateGroup(apiKey, ""); group != nil && !allowOpenAICompatibleMessagesDispatch(service.APIKeyWithResolvedGroup(apiKey, group)) {
+	if group := singleOpenAICompatibleCandidateGroup(apiKey, routePlatformIntent(c)); group != nil && !allowOpenAICompatibleMessagesDispatch(service.APIKeyWithResolvedGroup(apiKey, group)) {
 		h.anthropicErrorResponse(c, http.StatusForbidden, "permission_error",
 			"This group does not allow /v1/messages dispatch")
 		return
@@ -774,7 +785,7 @@ func (h *OpenAIGatewayHandler) Messages(c *gin.Context) {
 	}
 
 	subscription, _ := middleware2.GetSubscriptionFromContext(c)
-	requestPlatform := openAICompatibleRequestPlatform(apiKey)
+	requestPlatform := openAICompatibleRequestPlatform(apiKey, routePlatformIntent(c))
 
 	service.SetOpsLatencyMs(c, service.OpsAuthLatencyMsKey, time.Since(requestStart).Milliseconds())
 	routingStart := time.Now()
@@ -1331,7 +1342,7 @@ func (h *OpenAIGatewayHandler) ResponsesWebSocket(c *gin.Context) {
 	)
 	setOpsRequestContext(c, reqModel, true)
 	setOpsEndpointContext(c, "", int16(service.RequestTypeWSV2))
-	requestPlatform := openAICompatibleRequestPlatform(apiKey)
+	requestPlatform := openAICompatibleRequestPlatform(apiKey, routePlatformIntent(c))
 
 	if decision := h.checkContentModeration(c, reqLog, apiKey, subject, service.ContentModerationProtocolOpenAIResponses, reqModel, firstMessage); decision != nil && decision.Blocked {
 		writeContentModerationWSError(ctx, wsConn, decision)

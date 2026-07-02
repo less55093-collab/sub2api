@@ -241,7 +241,11 @@ func (h *GatewayHandler) Messages(c *gin.Context) {
 	if forcePlatform, ok := middleware2.GetForcePlatformFromContext(c); ok {
 		forcedPlatform = forcePlatform
 	}
-	platform := gatewayRequestPlatformForAPIKey(apiKey, forcedPlatform)
+	routePlatform := ""
+	if value, ok := middleware2.GetRoutePlatformIntentFromContext(c); ok {
+		routePlatform = value
+	}
+	platform := gatewayRequestPlatformForAPIKey(apiKey, forcedPlatform, routePlatform)
 	sessionKey := sessionHash
 	if platform == service.PlatformGemini && sessionHash != "" {
 		sessionKey = "gemini:" + sessionHash
@@ -1272,9 +1276,14 @@ func cloneAPIKeyWithGroup(apiKey *service.APIKey, group *service.Group) *service
 	return service.APIKeyWithResolvedGroup(apiKey, group)
 }
 
-func gatewayRequestPlatformForAPIKey(apiKey *service.APIKey, fallback string) string {
-	if forced := strings.TrimSpace(fallback); forced != "" {
+func gatewayRequestPlatformForAPIKey(apiKey *service.APIKey, forcePlatform string, routePlatforms ...string) string {
+	if forced := strings.TrimSpace(forcePlatform); forced != "" {
 		return forced
+	}
+	if len(routePlatforms) > 0 {
+		if routePlatform := strings.TrimSpace(routePlatforms[0]); routePlatform != "" && service.APIKeyHasCandidateGroup(apiKey, routePlatform) {
+			return routePlatform
+		}
 	}
 	if apiKey != nil && apiKey.Group != nil && strings.TrimSpace(apiKey.Group.Platform) != "" {
 		return apiKey.Group.Platform
