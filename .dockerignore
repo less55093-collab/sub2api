@@ -1,5 +1,5 @@
 # =============================================================================
-# Docker Ignore File for Sub2API
+# Docker Ignore File for FluxRouter
 # =============================================================================
 
 # Git
@@ -25,6 +25,9 @@ docs/
 
 # OS files
 .DS_Store
+._*
+**/._*
+__MACOSX/
 Thumbs.db
 
 # Build artifacts

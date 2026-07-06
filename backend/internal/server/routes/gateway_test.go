@@ -29,6 +29,9 @@ func newGatewayRoutesTestRouter(platform ...string) *gin.Engine {
 			Gateway:       &handler.GatewayHandler{},
 			OpenAIGateway: &handler.OpenAIGatewayHandler{},
 		},
+		servermiddleware.JWTAuthMiddleware(func(c *gin.Context) {
+			c.Next()
+		}),
 		servermiddleware.APIKeyAuthMiddleware(func(c *gin.Context) {
 			groupID := int64(1)
 			c.Set(string(servermiddleware.ContextKeyAPIKey), &service.APIKey{

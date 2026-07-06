@@ -6,6 +6,7 @@
 import { apiClient } from "../client";
 import type {
   CustomEndpoint,
+  ChatPreset,
   CustomMenuItem,
   LoginAgreementDocument,
   NotifyEmailEntry,
@@ -438,6 +439,7 @@ export interface SystemSettings {
   backend_mode_enabled: boolean;
   custom_menu_items: CustomMenuItem[];
   custom_endpoints: CustomEndpoint[];
+  chats?: ChatPreset[];
   // SMTP settings
   smtp_host: string;
   smtp_port: number;
@@ -711,6 +713,7 @@ export interface UpdateSettingsRequest {
   backend_mode_enabled?: boolean;
   custom_menu_items?: CustomMenuItem[];
   custom_endpoints?: CustomEndpoint[];
+  chats?: ChatPreset[];
   smtp_host?: string;
   smtp_port?: number;
   smtp_username?: string;

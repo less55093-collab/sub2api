@@ -187,6 +187,7 @@ import { useAdminSettingsStore, useAppStore, useAuthStore, useOnboardingStore } 
 import VersionBadge from '@/components/common/VersionBadge.vue'
 import { sanitizeSvg } from '@/utils/sanitize'
 import { FeatureFlags, makeSidebarFlag } from '@/utils/featureFlags'
+import { parseChatPresets } from '@/utils/chatLinks'
 
 interface NavItem {
   path: string
@@ -273,6 +274,36 @@ const KeyIcon = {
           'stroke-linecap': 'round',
           'stroke-linejoin': 'round',
           d: 'M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z'
+        })
+      ]
+    )
+}
+
+const ChatIcon = {
+  render: () =>
+    h(
+      'svg',
+      { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '1.5' },
+      [
+        h('path', {
+          'stroke-linecap': 'round',
+          'stroke-linejoin': 'round',
+          d: 'M8.625 9.75h6.75M8.625 13.5h4.5M21 12c0 4.142-4.03 7.5-9 7.5a10.2 10.2 0 01-3.675-.678L3 21l1.628-4.34A6.7 6.7 0 013 12c0-4.142 4.03-7.5 9-7.5s9 3.358 9 7.5z'
+        })
+      ]
+    )
+}
+
+const PlaygroundIcon = {
+  render: () =>
+    h(
+      'svg',
+      { fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '1.5' },
+      [
+        h('path', {
+          'stroke-linecap': 'round',
+          'stroke-linejoin': 'round',
+          d: 'M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5m4.75-11.396a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M5 14.5l-2.69 2.689c-1.232 1.232-.65 3.318 1.067 3.611A48.309 48.309 0 0012 21c2.773 0 5.491-.235 8.135-.687 1.718-.293 2.3-2.379 1.067-3.61L19.8 15.3M5 14.5a9.065 9.065 0 016.23.693 9.065 9.065 0 006.23-.693l2.34.8'
         })
       ]
     )
@@ -666,7 +697,11 @@ function buildSelfNavItems(withDashboard: boolean): NavItem[] {
   }
   items.push(
     { path: '/keys', label: t('nav.apiKeys'), icon: KeyIcon },
+    { path: '/image-generator', label: t('nav.imageStudio'), icon: DashboardIcon },
+    { path: '/playground', label: t('nav.playground'), icon: PlaygroundIcon, hideInSimpleMode: true },
     { path: '/usage', label: t('nav.usage'), icon: ChartIcon, hideInSimpleMode: true },
+    { path: '/models', label: t('nav.modelMarket'), icon: PriceTagIcon, hideInSimpleMode: true },
+    ...chatNavItemsForUser.value,
     { path: '/available-channels', label: t('nav.availableChannels'), icon: ChannelIcon, hideInSimpleMode: true, featureFlag: flagAvailableChannels },
     { path: '/monitor', label: t('nav.channelStatus'), icon: SignalIcon, featureFlag: flagChannelMonitor },
     { path: '/subscriptions', label: t('nav.mySubscriptions'), icon: CreditCardIcon, hideInSimpleMode: true },
@@ -707,6 +742,15 @@ const customMenuItemsForUser = computed(() => {
     .sort((a, b) => a.sort_order - b.sort_order)
 })
 
+const chatNavItemsForUser = computed(() =>
+  parseChatPresets(appStore.cachedPublicSettings?.chats ?? []).map((item): NavItem => ({
+    path: `/chat/${encodeURIComponent(item.id)}`,
+    label: item.name,
+    icon: ChatIcon,
+    hideInSimpleMode: true,
+  })),
+)
+
 const customMenuItemsForAdmin = computed(() => {
   return adminSettingsStore.customMenuItems
     .filter((item) => item.visibility === 'admin')
@@ -720,6 +764,7 @@ const adminNavItems = computed((): NavItem[] => {
     { path: '/admin/ops', label: t('nav.ops'), icon: ChartIcon, featureFlag: flagOpsMonitoring },
     { path: '/admin/users', label: t('nav.users'), icon: UsersIcon, hideInSimpleMode: true },
     { path: '/admin/groups', label: t('nav.groups'), icon: FolderIcon, hideInSimpleMode: true },
+    { path: '/admin/model-market', label: t('nav.modelMarketConfig'), icon: PriceTagIcon, hideInSimpleMode: true },
     {
       path: '/admin/channels',
       label: t('nav.channelManagement'),

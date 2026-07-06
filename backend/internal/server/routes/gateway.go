@@ -2,12 +2,15 @@ package routes
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/Wei-Shaw/sub2api/internal/config"
 	"github.com/Wei-Shaw/sub2api/internal/handler"
+	"github.com/Wei-Shaw/sub2api/internal/pkg/pagination"
 	"github.com/Wei-Shaw/sub2api/internal/server/middleware"
 	"github.com/Wei-Shaw/sub2api/internal/service"
 
@@ -19,6 +22,7 @@ import (
 func RegisterGatewayRoutes(
 	r *gin.Engine,
 	h *handler.Handlers,
+	jwtAuth middleware.JWTAuthMiddleware,
 	apiKeyAuth middleware.APIKeyAuthMiddleware,
 	apiKeyService *service.APIKeyService,
 	subscriptionService *service.SubscriptionService,
@@ -34,6 +38,7 @@ func RegisterGatewayRoutes(
 	// 未分组 Key 拦截中间件（按协议格式区分错误响应）
 	requireGroupAnthropic := middleware.RequireGroupAssignment(settingService, middleware.AnthropicErrorWriter)
 	requireGroupGoogle := middleware.RequireGroupAssignment(settingService, middleware.GoogleErrorWriter)
+	playgroundKeyAuth := playgroundAPIKeyInjector(apiKeyService)
 
 	dispatchMessages := func(c *gin.Context) {
 		platform := routePlatformForMessagesEndpoint(c)
@@ -219,6 +224,33 @@ func RegisterGatewayRoutes(
 	r.POST("/videos/generations", bodyLimit, clientRequestID, opsErrorLogger, endpointNorm, gin.HandlerFunc(apiKeyAuth), requireGroupAnthropic, videoGenerationHandler)
 	r.GET("/videos/:request_id", bodyLimit, clientRequestID, opsErrorLogger, endpointNorm, gin.HandlerFunc(apiKeyAuth), requireGroupAnthropic, videoStatusHandler)
 
+	playground := r.Group("/pg")
+	playground.Use(bodyLimit)
+	playground.Use(clientRequestID)
+	playground.Use(opsErrorLogger)
+	playground.Use(endpointNorm)
+	playground.Use(gin.HandlerFunc(jwtAuth))
+	playground.Use(middleware.BackendModeUserGuard(settingService))
+	playground.Use(playgroundKeyAuth)
+	playground.Use(gin.HandlerFunc(apiKeyAuth))
+	playground.Use(requireGroupAnthropic)
+	{
+		playground.POST("/chat/completions", dispatchOpenAICompatible(h.OpenAIGateway.ChatCompletions, h.Gateway.ChatCompletions))
+	}
+
+	playgroundAPI := r.Group("/api/v1/playground")
+	playgroundAPI.Use(clientRequestID)
+	playgroundAPI.Use(opsErrorLogger)
+	playgroundAPI.Use(endpointNorm)
+	playgroundAPI.Use(gin.HandlerFunc(jwtAuth))
+	playgroundAPI.Use(middleware.BackendModeUserGuard(settingService))
+	playgroundAPI.Use(playgroundKeyAuth)
+	playgroundAPI.Use(gin.HandlerFunc(apiKeyAuth))
+	playgroundAPI.Use(requireGroupAnthropic)
+	{
+		playgroundAPI.GET("/models", h.Gateway.Models)
+	}
+
 	// Antigravity 模型列表
 	r.GET("/antigravity/models", gin.HandlerFunc(apiKeyAuth), requireGroupAnthropic, h.Gateway.AntigravityModels)
 
@@ -252,6 +284,185 @@ func RegisterGatewayRoutes(
 		antigravityV1Beta.POST("/models/*modelAction", h.Gateway.GeminiV1BetaModels)
 	}
 
+}
+
+type playgroundAPIKeyLister interface {
+	List(ctx context.Context, userID int64, params pagination.PaginationParams, filters service.APIKeyListFilters) ([]service.APIKey, *pagination.PaginationResult, error)
+}
+
+type playgroundGroupRequest struct {
+	id   *int64
+	name string
+}
+
+const playgroundSelectedAPIKeyIDHeader = "X-FluxRouter-API-Key-ID"
+
+func playgroundAPIKeyInjector(lister playgroundAPIKeyLister) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if lister == nil {
+			middleware.AbortWithError(c, http.StatusInternalServerError, "INTERNAL_ERROR", "Playground API key service is not configured")
+			return
+		}
+		subject, ok := middleware.GetAuthSubjectFromContext(c)
+		if !ok {
+			middleware.AbortWithError(c, http.StatusUnauthorized, "UNAUTHORIZED", "User not authenticated")
+			return
+		}
+		groupReq, ok := playgroundGroupRequestFromContext(c)
+		if !ok {
+			middleware.AbortWithError(c, http.StatusBadRequest, "INVALID_GROUP", "Invalid group_id")
+			return
+		}
+		selectedKeyID, ok := playgroundSelectedAPIKeyIDFromContext(c)
+		if !ok {
+			middleware.AbortWithError(c, http.StatusBadRequest, "INVALID_API_KEY", "Invalid API key selection")
+			return
+		}
+		if selectedKeyID == nil {
+			middleware.AbortWithError(c, http.StatusForbidden, "PLAYGROUND_API_KEY_REQUIRED", "Select an API key for playground")
+			return
+		}
+
+		keys, _, err := lister.List(c.Request.Context(), subject.UserID, pagination.PaginationParams{
+			Page:      1,
+			PageSize:  1000,
+			SortBy:    "created_at",
+			SortOrder: pagination.SortOrderAsc,
+		}, service.APIKeyListFilters{Status: service.StatusAPIKeyActive})
+		if err != nil {
+			middleware.AbortWithError(c, http.StatusInternalServerError, "INTERNAL_ERROR", "Failed to list user API keys")
+			return
+		}
+
+		key, groupID := selectPlaygroundAPIKey(keys, groupReq, selectedKeyID)
+		if key == nil {
+			middleware.AbortWithError(c, http.StatusForbidden, "PLAYGROUND_API_KEY_UNAVAILABLE", "Selected API key is not available for playground")
+			return
+		}
+		c.Request.Header.Set("Authorization", "Bearer "+strings.TrimSpace(key.Key))
+		if groupID != nil {
+			c.Request.Header.Set(middleware.HeaderAPIKeyGroupID, strconv.FormatInt(*groupID, 10))
+		}
+		c.Next()
+	}
+}
+
+func selectPlaygroundAPIKey(keys []service.APIKey, groupReq playgroundGroupRequest, selectedKeyID *int64) (*service.APIKey, *int64) {
+	for i := range keys {
+		if selectedKeyID != nil && keys[i].ID != *selectedKeyID {
+			continue
+		}
+		if !playgroundAPIKeyUsable(keys[i]) {
+			continue
+		}
+		if groupReq.id == nil && groupReq.name == "" {
+			return &keys[i], nil
+		}
+		if groupID, ok := playgroundAPIKeyGroupID(keys[i], groupReq); ok {
+			return &keys[i], &groupID
+		}
+	}
+	return nil, nil
+}
+
+func playgroundSelectedAPIKeyIDFromContext(c *gin.Context) (*int64, bool) {
+	raw := strings.TrimSpace(c.GetHeader(playgroundSelectedAPIKeyIDHeader))
+	if raw == "" {
+		return nil, true
+	}
+	id, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil || id <= 0 {
+		return nil, false
+	}
+	return &id, true
+}
+
+func playgroundAPIKeyUsable(key service.APIKey) bool {
+	if strings.TrimSpace(key.Key) == "" {
+		return false
+	}
+	return key.Status == "" || key.IsActive()
+}
+
+func playgroundAPIKeyGroupID(key service.APIKey, groupReq playgroundGroupRequest) (int64, bool) {
+	if groupReq.id != nil {
+		groupID := *groupReq.id
+		if key.GroupID != nil && *key.GroupID == groupID {
+			return groupID, true
+		}
+		for _, id := range key.GroupIDs {
+			if id == groupID {
+				return groupID, true
+			}
+		}
+		for _, group := range key.Groups {
+			if group.ID == groupID {
+				return groupID, true
+			}
+		}
+		if key.Group != nil && key.Group.ID == groupID {
+			return groupID, true
+		}
+		return 0, false
+	}
+	if groupReq.name == "" {
+		return 0, false
+	}
+	if key.Group != nil && strings.EqualFold(strings.TrimSpace(key.Group.Name), groupReq.name) && key.Group.ID > 0 {
+		return key.Group.ID, true
+	}
+	for _, group := range key.Groups {
+		if strings.EqualFold(strings.TrimSpace(group.Name), groupReq.name) && group.ID > 0 {
+			return group.ID, true
+		}
+	}
+	return 0, false
+}
+
+func playgroundGroupRequestFromContext(c *gin.Context) (playgroundGroupRequest, bool) {
+	if raw := strings.TrimSpace(c.Query("group_id")); raw != "" {
+		return playgroundGroupRequestFromID(raw)
+	}
+	if raw := strings.TrimSpace(c.Query("group")); raw != "" {
+		return playgroundGroupRequestFromFlexible(raw), true
+	}
+	if c == nil || c.Request == nil || c.Request.Body == nil {
+		return playgroundGroupRequest{}, true
+	}
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		return playgroundGroupRequest{}, true
+	}
+	c.Request.Body = io.NopCloser(bytes.NewReader(body))
+	if len(body) == 0 || !gjson.ValidBytes(body) {
+		return playgroundGroupRequest{}, true
+	}
+	if value := gjson.GetBytes(body, "group_id"); value.Exists() {
+		return playgroundGroupRequestFromID(value.String())
+	}
+	if value := gjson.GetBytes(body, "group"); value.Exists() {
+		return playgroundGroupRequestFromFlexible(value.String()), true
+	}
+	return playgroundGroupRequest{}, true
+}
+
+func playgroundGroupRequestFromID(raw string) (playgroundGroupRequest, bool) {
+	groupID, err := strconv.ParseInt(strings.TrimSpace(raw), 10, 64)
+	if err != nil || groupID <= 0 {
+		return playgroundGroupRequest{}, false
+	}
+	return playgroundGroupRequest{id: &groupID}, true
+}
+
+func playgroundGroupRequestFromFlexible(raw string) playgroundGroupRequest {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return playgroundGroupRequest{}
+	}
+	if groupID, err := strconv.ParseInt(raw, 10, 64); err == nil && groupID > 0 {
+		return playgroundGroupRequest{id: &groupID}
+	}
+	return playgroundGroupRequest{name: raw}
 }
 
 // getGroupPlatform extracts the group platform from the API Key stored in context.

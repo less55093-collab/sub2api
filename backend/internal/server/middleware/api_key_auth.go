@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/Wei-Shaw/sub2api/internal/config"
@@ -12,6 +13,11 @@ import (
 	"github.com/Wei-Shaw/sub2api/internal/service"
 
 	"github.com/gin-gonic/gin"
+)
+
+const (
+	HeaderAPIKeyGroupID       = "X-FluxRouter-Group-ID"
+	LegacyHeaderAPIKeyGroupID = "X-Sub2API-Group-ID"
 )
 
 // NewAPIKeyAuthMiddleware 创建 API Key 认证中间件
@@ -74,6 +80,11 @@ func apiKeyAuthWithSubscription(apiKeyService *service.APIKeyService, subscripti
 				return
 			}
 			AbortWithError(c, 500, "INTERNAL_ERROR", "Failed to validate API key")
+			return
+		}
+
+		apiKey, ok := resolveAPIKeyGroupFromHeader(c, apiKey)
+		if !ok {
 			return
 		}
 
@@ -236,6 +247,28 @@ func apiKeyAuthWithSubscription(apiKeyService *service.APIKeyService, subscripti
 
 		c.Next()
 	}
+}
+
+func resolveAPIKeyGroupFromHeader(c *gin.Context, apiKey *service.APIKey) (*service.APIKey, bool) {
+	raw := strings.TrimSpace(c.GetHeader(HeaderAPIKeyGroupID))
+	if raw == "" {
+		raw = strings.TrimSpace(c.GetHeader(LegacyHeaderAPIKeyGroupID))
+	}
+	if raw == "" {
+		return apiKey, true
+	}
+	groupID, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil || groupID <= 0 {
+		AbortWithError(c, 400, "INVALID_GROUP", "Invalid group_id")
+		return nil, false
+	}
+	for _, group := range service.APIKeyCandidateGroups(apiKey, "") {
+		if group.ID == groupID {
+			return service.APIKeyWithResolvedGroup(apiKey, &group), true
+		}
+	}
+	AbortWithError(c, 403, "GROUP_NOT_ALLOWED", "API key is not allowed to use the requested group")
+	return nil, false
 }
 
 // GetAPIKeyFromContext 从上下文中获取API key

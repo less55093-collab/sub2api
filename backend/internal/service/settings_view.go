@@ -141,6 +141,7 @@ type SystemSettings struct {
 	TablePageSizeOptions        []int
 	CustomMenuItems             string // JSON array of custom menu items
 	CustomEndpoints             string // JSON array of custom endpoints
+	Chats                       string // JSON array of chat presets
 
 	DefaultConcurrency           int
 	DefaultBalance               float64
@@ -275,6 +276,7 @@ type PublicSettings struct {
 	TablePageSizeOptions        []int
 	CustomMenuItems             string // JSON array of custom menu items
 	CustomEndpoints             string // JSON array of custom endpoints
+	Chats                       string // JSON array of chat presets
 
 	LinuxDoOAuthEnabled      bool
 	DingTalkOAuthEnabled     bool

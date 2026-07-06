@@ -1,5 +1,5 @@
 /**
- * Vue Router configuration for Sub2API frontend
+ * Vue Router configuration for FluxRouter frontend
  * Defines all application routes with lazy loading and navigation guards
  */
 
@@ -175,6 +175,16 @@ const routes: RouteRecordRaw[] = [
       title: 'Legal Document'
     }
   },
+  {
+    path: '/models',
+    name: 'ModelMarket',
+    component: () => import('@/views/public/ModelMarketView.vue'),
+    meta: {
+      requiresAuth: false,
+      title: 'Model Market',
+      titleKey: 'nav.modelMarket'
+    }
+  },
 
   // ==================== User Routes ====================
   {
@@ -203,6 +213,40 @@ const routes: RouteRecordRaw[] = [
       title: 'API Keys',
       titleKey: 'keys.title',
       descriptionKey: 'keys.description'
+    }
+  },
+  {
+    path: '/image-generator',
+    name: 'ImageStudio',
+    component: () => import('@/views/user/ImageStudioView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Image Studio',
+      titleKey: 'nav.imageStudio'
+    }
+  },
+  {
+    path: '/chat/:chatId',
+    name: 'ChatPreset',
+    component: () => import('@/views/user/ChatPageView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Chat',
+      titleKey: 'chat.title'
+    }
+  },
+  {
+    path: '/playground',
+    name: 'Playground',
+    component: () => import('@/views/user/PlaygroundView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: false,
+      title: 'Playground',
+      titleKey: 'playground.title',
+      descriptionKey: 'playground.description'
     }
   },
   {
@@ -563,6 +607,17 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
+    path: '/admin/model-market',
+    name: 'AdminModelMarket',
+    component: () => import('@/views/admin/ModelMarketAdminView.vue'),
+    meta: {
+      requiresAuth: true,
+      requiresAdmin: true,
+      title: 'Model Market Config',
+      titleKey: 'nav.modelMarketConfig'
+    }
+  },
+  {
     path: '/admin/usage',
     name: 'AdminUsage',
     component: () => import('@/views/admin/UsageView.vue'),
@@ -690,7 +745,7 @@ let authInitialized = false
 const navigationLoading = useNavigationLoadingState()
 // 延迟初始化预加载，传入 router 实例
 let routePrefetch: ReturnType<typeof useRoutePrefetch> | null = null
-const BACKEND_MODE_ALLOWED_PATHS = ['/login', '/key-usage', '/setup', '/payment/result', '/payment/airwallex', '/legal']
+const BACKEND_MODE_ALLOWED_PATHS = ['/login', '/key-usage', '/setup', '/payment/result', '/payment/airwallex', '/legal', '/models']
 const BACKEND_MODE_CALLBACK_PATHS = [
   '/auth/callback',
   '/auth/linuxdo/callback',

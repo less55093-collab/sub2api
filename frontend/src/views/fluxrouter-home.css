@@ -1,0 +1,1231 @@
+@import url("https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=ZCOOL+QingKe+HuangYou&display=swap");
+
+.fluxrouter-home {
+  --bg: #03020b;
+  --bg-deep: #010107;
+  --cyan: #19e6ff;
+  --cyan-bright: #9af7ff;
+  --blue: #116dff;
+  --pink: #ff2fd6;
+  --green: #55ffb7;
+  --ice: #d7f7ff;
+  --muted: #84b4ca;
+  --panel: rgba(4, 13, 28, 0.7);
+  --panel-strong: rgba(3, 22, 43, 0.84);
+  --line: rgba(80, 228, 255, 0.45);
+  --glow: 0 0 34px rgba(25, 230, 255, 0.58);
+  position: relative;
+  min-height: 100vh;
+  padding: 30px clamp(18px, 4vw, 72px) 48px;
+  overflow-x: hidden;
+  isolation: isolate;
+  color: var(--ice);
+  background:
+    radial-gradient(circle at 72% 36%, rgba(17, 109, 255, 0.48), transparent 24rem),
+    radial-gradient(circle at 20% 22%, rgba(255, 47, 214, 0.16), transparent 18rem),
+    radial-gradient(circle at 48% 100%, rgba(42, 255, 205, 0.22), transparent 24rem),
+    linear-gradient(180deg, #050311 0%, #05152a 54%, #010107 100%);
+  font-family: "Rajdhani", "ZCOOL QingKe HuangYou", system-ui, sans-serif;
+}
+
+.fluxrouter-home *,
+.fluxrouter-home *::before,
+.fluxrouter-home *::after {
+  box-sizing: border-box;
+}
+
+.fluxrouter-home a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.fluxrouter-home a:focus-visible {
+  outline: 3px solid var(--cyan-bright);
+  outline-offset: 4px;
+}
+
+.fluxrouter-home .skip-link {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  z-index: 100;
+  padding: 10px 14px;
+  background: #00111d;
+  color: var(--cyan-bright);
+  transform: translateY(-140%);
+  transition: transform 0.2s ease;
+}
+
+.fluxrouter-home .skip-link:focus {
+  transform: translateY(0);
+}
+
+.fluxrouter-home .cyber-noise {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  opacity: 0.12;
+  background:
+    repeating-radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.18) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, transparent 0 6px, rgba(255, 255, 255, 0.09) 7px);
+  mix-blend-mode: overlay;
+  animation: fluxrouterNoiseShift 0.45s steps(2) infinite;
+}
+
+.fluxrouter-home::before,
+.fluxrouter-home::after {
+  position: fixed;
+  inset: 0;
+  z-index: -5;
+  pointer-events: none;
+  content: "";
+}
+
+.fluxrouter-home::before {
+  background:
+    linear-gradient(112deg, rgba(0, 0, 0, 0.88) 0 7%, transparent 18% 78%, rgba(0, 0, 0, 0.82) 94%),
+    repeating-linear-gradient(90deg, transparent 0 72px, rgba(25, 230, 255, 0.075) 73px 74px),
+    repeating-linear-gradient(0deg, transparent 0 72px, rgba(255, 47, 214, 0.035) 73px 74px);
+}
+
+.fluxrouter-home::after {
+  background: linear-gradient(180deg, transparent 0%, rgba(1, 4, 10, 0.18) 62%, rgba(1, 4, 10, 0.92) 100%);
+}
+
+.fluxrouter-home .starfield {
+  position: fixed;
+  inset: 0;
+  z-index: -4;
+  background-image:
+    radial-gradient(circle, rgba(128, 218, 255, 0.9) 0 1px, transparent 1.6px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.55) 0 1px, transparent 1.8px);
+  background-position:
+    0 0,
+    38px 76px;
+  background-size:
+    140px 140px,
+    220px 220px;
+  mask-image: linear-gradient(180deg, #000 0%, transparent 86%);
+  animation: fluxrouterDriftStars 22s linear infinite;
+}
+
+.fluxrouter-home .data-rain {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.fluxrouter-home .data-rain span {
+  position: absolute;
+  top: -180px;
+  color: rgba(154, 247, 255, 0.75);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-shadow: 0 0 12px rgba(25, 230, 255, 0.8);
+  writing-mode: vertical-rl;
+  animation: fluxrouterRainDrop linear infinite;
+}
+
+.fluxrouter-home .beam {
+  position: fixed;
+  z-index: -1;
+  width: 42vw;
+  height: 2px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(154, 247, 255, 0.85), rgba(255, 47, 214, 0.55), transparent);
+  box-shadow: 0 0 28px rgba(25, 230, 255, 0.62);
+  transform-origin: left center;
+  animation: fluxrouterBeamSweep 5.8s ease-in-out infinite;
+}
+
+.fluxrouter-home .beam-a {
+  left: -8vw;
+  top: 32vh;
+  transform: rotate(-18deg);
+}
+
+.fluxrouter-home .beam-b {
+  right: -10vw;
+  top: 62vh;
+  transform: rotate(16deg);
+  animation-delay: 1.8s;
+}
+
+.fluxrouter-home .nebula {
+  position: fixed;
+  z-index: -3;
+  width: 34vw;
+  height: 34vw;
+  min-width: 360px;
+  min-height: 360px;
+  border-radius: 999px;
+  filter: blur(36px);
+  opacity: 0.55;
+}
+
+.fluxrouter-home .nebula-left {
+  left: -14vw;
+  top: 18vh;
+  background: radial-gradient(circle, rgba(255, 47, 214, 0.3), rgba(0, 151, 255, 0.34), transparent 68%);
+}
+
+.fluxrouter-home .nebula-right {
+  right: -10vw;
+  top: -8vh;
+  background: radial-gradient(circle, rgba(34, 205, 255, 0.46), transparent 70%);
+}
+
+.fluxrouter-home .scanline {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0.18;
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(154, 247, 255, 0.2) 50%, transparent 100%) 0 var(--scan-y, -100vh) / 100% 140px no-repeat,
+    repeating-linear-gradient(180deg, transparent 0 7px, rgba(125, 231, 255, 0.18) 8px);
+  mix-blend-mode: screen;
+  animation: fluxrouterScanMove 4.5s linear infinite;
+}
+
+.fluxrouter-home .topbar {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.fluxrouter-home .brand,
+.fluxrouter-home .nav-links,
+.fluxrouter-home .glass-card {
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(135deg, rgba(12, 40, 68, 0.78), rgba(3, 9, 22, 0.54)),
+    linear-gradient(90deg, rgba(255, 47, 214, 0.08), transparent 44%, rgba(25, 230, 255, 0.09));
+  box-shadow:
+    inset 0 0 22px rgba(25, 230, 255, 0.1),
+    0 0 28px rgba(25, 230, 255, 0.1),
+    0 18px 80px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(18px);
+}
+
+.fluxrouter-home .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  padding: 12px 16px;
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+  box-shadow: var(--glow), inset 0 0 22px rgba(255, 47, 214, 0.08);
+}
+
+.fluxrouter-home .brand-mark {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border: 1px solid rgba(154, 247, 255, 0.9);
+  border-radius: 12px;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 8px, rgba(154, 247, 255, 0.18) 9px),
+    rgba(2, 18, 34, 0.82);
+  box-shadow: var(--glow), inset 0 0 18px rgba(39, 200, 255, 0.35);
+  transform: rotate(45deg);
+}
+
+.fluxrouter-home .brand-mark::before,
+.fluxrouter-home .brand-mark::after {
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(125, 231, 255, 0.48);
+  border-radius: inherit;
+  content: "";
+}
+
+.fluxrouter-home .brand-mark::after {
+  inset: 15px;
+  background: var(--pink);
+  box-shadow: 0 0 18px var(--pink);
+}
+
+.fluxrouter-home .brand strong,
+.fluxrouter-home .brand small {
+  display: block;
+  letter-spacing: 0.16em;
+  line-height: 1;
+}
+
+.fluxrouter-home .brand strong {
+  font-size: 1rem;
+}
+
+.fluxrouter-home .brand small {
+  margin-top: 7px;
+  color: var(--muted);
+  font-family: "ZCOOL QingKe HuangYou", "Rajdhani", system-ui, sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.24em;
+}
+
+.fluxrouter-home .nav-links {
+  display: flex;
+  gap: clamp(12px, 3vw, 34px);
+  min-height: 52px;
+  padding: 12px 18px;
+  color: #b7f4ff;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.fluxrouter-home .nav-links a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  transition:
+    color 0.22s ease,
+    text-shadow 0.22s ease;
+}
+
+.fluxrouter-home .nav-links a::after {
+  position: absolute;
+  left: 0;
+  bottom: -7px;
+  width: 0;
+  height: 1px;
+  background: var(--cyan-bright);
+  box-shadow: var(--glow);
+  content: "";
+  transition: width 0.22s ease;
+}
+
+.fluxrouter-home .nav-links a:hover,
+.fluxrouter-home .nav-links a:focus-visible {
+  color: white;
+  text-shadow:
+    0 0 16px var(--cyan),
+    0 0 28px var(--pink);
+}
+
+.fluxrouter-home .nav-links a:hover::after,
+.fluxrouter-home .nav-links a:focus-visible::after,
+.fluxrouter-home .nav-links a[aria-current="page"]::after {
+  width: 100%;
+}
+
+.fluxrouter-home .hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(280px, 0.78fr) minmax(420px, 1.22fr);
+  align-items: center;
+  min-height: calc(100vh - 102px);
+  overflow: hidden;
+  gap: 28px;
+}
+
+.fluxrouter-home .hero::before {
+  position: absolute;
+  inset: 8% 44% 8% 0;
+  border: 1px solid rgba(154, 247, 255, 0.16);
+  background:
+    linear-gradient(90deg, rgba(25, 230, 255, 0.08), transparent 38%),
+    repeating-linear-gradient(0deg, transparent 0 18px, rgba(154, 247, 255, 0.04) 19px);
+  clip-path: polygon(0 0, 88% 0, 100% 18%, 88% 100%, 0 100%);
+  content: "";
+}
+
+.fluxrouter-home .hero-copy {
+  position: relative;
+  z-index: 4;
+  max-width: 650px;
+  padding-top: 24px;
+}
+
+.fluxrouter-home .eyebrow,
+.fluxrouter-home .card-kicker {
+  color: var(--cyan-bright);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  text-shadow: 0 0 18px rgba(39, 200, 255, 0.75);
+}
+
+.fluxrouter-home .eyebrow {
+  margin: 0 0 20px;
+  font-size: clamp(0.86rem, 1.4vw, 1.04rem);
+  animation: fluxrouterTextFlicker 3.6s infinite;
+}
+
+.fluxrouter-home h1,
+.fluxrouter-home h2,
+.fluxrouter-home p {
+  margin-top: 0;
+}
+
+.fluxrouter-home h1 {
+  max-width: 720px;
+  margin-bottom: 22px;
+  font-family: "ZCOOL QingKe HuangYou", "Rajdhani", system-ui, sans-serif;
+  font-size: clamp(4rem, 9vw, 9.2rem);
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: 0.04em;
+  text-shadow:
+    0 0 18px rgba(25, 230, 255, 0.58),
+    0 0 56px rgba(18, 103, 255, 0.56),
+    8px 0 0 rgba(255, 47, 214, 0.16);
+}
+
+.fluxrouter-home .glitch-title {
+  position: relative;
+}
+
+.fluxrouter-home .glitch-title::before,
+.fluxrouter-home .glitch-title::after {
+  position: absolute;
+  inset: 0;
+  content: attr(data-text);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.fluxrouter-home .glitch-title::before {
+  color: var(--pink);
+  transform: translate(5px, -2px);
+  clip-path: inset(0 0 58% 0);
+  animation: fluxrouterGlitchSlice 3.2s infinite;
+}
+
+.fluxrouter-home .glitch-title::after {
+  color: var(--cyan-bright);
+  transform: translate(-5px, 2px);
+  clip-path: inset(54% 0 0 0);
+  animation: fluxrouterGlitchSlice 2.7s infinite reverse;
+}
+
+.fluxrouter-home h1 span {
+  display: block;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(215, 247, 255, 0.9);
+  background: linear-gradient(90deg, #f1feff, #19e6ff 38%, #ff2fd6 72%, #0a64ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  filter: drop-shadow(0 0 16px rgba(25, 230, 255, 0.85));
+}
+
+.fluxrouter-home .hero-text {
+  max-width: 580px;
+  margin-bottom: 34px;
+  color: #a9cbe1;
+  font-family: "ZCOOL QingKe HuangYou", "Rajdhani", system-ui, sans-serif;
+  font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+  line-height: 1.85;
+  letter-spacing: 0.08em;
+}
+
+.fluxrouter-home .hero-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: -10px 0 26px;
+}
+
+.fluxrouter-home .hero-stats span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(154, 247, 255, 0.26);
+  color: #9ed9eb;
+  background: rgba(2, 16, 30, 0.62);
+  clip-path: polygon(9px 0, 100% 0, calc(100% - 9px) 100%, 0 100%);
+  letter-spacing: 0.12em;
+}
+
+.fluxrouter-home .hero-stats b {
+  color: var(--green);
+  text-shadow: 0 0 12px rgba(85, 255, 183, 0.85);
+}
+
+.fluxrouter-home .hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.fluxrouter-home .station-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 178px;
+  min-height: 58px;
+  padding: 0 24px;
+  overflow: hidden;
+  border: 1px solid rgba(154, 247, 255, 0.82);
+  clip-path: polygon(16px 0, 100% 0, calc(100% - 16px) 100%, 0 100%);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition:
+    transform 0.24s ease,
+    box-shadow 0.24s ease,
+    filter 0.24s ease;
+}
+
+.fluxrouter-home .station-btn::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 0 30%, rgba(255, 255, 255, 0.72) 48%, transparent 66%);
+  content: "";
+  transform: translateX(-120%);
+  transition: transform 0.62s ease;
+}
+
+.fluxrouter-home .station-btn:hover,
+.fluxrouter-home .station-btn:focus-visible {
+  transform: translateY(-3px);
+  filter: saturate(1.25);
+  box-shadow:
+    0 0 32px rgba(25, 230, 255, 0.58),
+    0 0 54px rgba(255, 47, 214, 0.2);
+}
+
+.fluxrouter-home .station-btn:hover::before,
+.fluxrouter-home .station-btn:focus-visible::before {
+  transform: translateX(120%);
+}
+
+.fluxrouter-home .station-btn-primary {
+  color: #00111d;
+  background: linear-gradient(90deg, #9af7ff, #19e6ff 42%, #ff2fd6 100%);
+  box-shadow: var(--glow), 0 0 28px rgba(255, 47, 214, 0.28);
+}
+
+.fluxrouter-home .station-btn-primary span,
+.fluxrouter-home .station-btn-ghost span {
+  position: relative;
+  z-index: 1;
+}
+
+.fluxrouter-home .station-btn-ghost {
+  color: var(--ice);
+  background: rgba(8, 32, 55, 0.58);
+}
+
+.fluxrouter-home .portal-wrap {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  min-height: 660px;
+  overflow: hidden;
+  transform-style: preserve-3d;
+}
+
+.fluxrouter-home .terminal-card {
+  position: absolute;
+  left: 0;
+  top: 12%;
+  z-index: 5;
+  width: min(310px, 44vw);
+  padding: 18px 18px 16px;
+  border: 1px solid rgba(154, 247, 255, 0.42);
+  color: rgba(154, 247, 255, 0.9);
+  background:
+    linear-gradient(135deg, rgba(3, 20, 38, 0.88), rgba(6, 4, 20, 0.78)),
+    repeating-linear-gradient(0deg, transparent 0 16px, rgba(154, 247, 255, 0.05) 17px);
+  box-shadow:
+    0 0 32px rgba(25, 230, 255, 0.18),
+    inset 0 0 28px rgba(25, 230, 255, 0.08);
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+  font-size: 0.88rem;
+  letter-spacing: 0.1em;
+  transform: rotate(-3deg);
+  animation: fluxrouterTerminalHover 5s ease-in-out infinite;
+}
+
+.fluxrouter-home .terminal-card::before {
+  display: block;
+  height: 1px;
+  margin: 12px 0 14px;
+  background: linear-gradient(90deg, var(--pink), var(--cyan), transparent);
+  content: "";
+}
+
+.fluxrouter-home .terminal-card p {
+  margin: 0 0 8px;
+  color: rgba(154, 247, 255, 0.78);
+  font-family: "Rajdhani", system-ui, sans-serif;
+  line-height: 1.1;
+}
+
+.fluxrouter-home .terminal-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 12px var(--cyan);
+}
+
+.fluxrouter-home .terminal-dot:nth-child(2) {
+  background: var(--pink);
+  box-shadow: 0 0 12px var(--pink);
+}
+
+.fluxrouter-home .terminal-dot:nth-child(3) {
+  background: var(--green);
+  box-shadow: 0 0 12px var(--green);
+}
+
+.fluxrouter-home .portal {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: min(46vw, 660px);
+  aspect-ratio: 1;
+  filter: drop-shadow(0 0 32px rgba(25, 230, 255, 0.36));
+  transform: translateY(-52%) rotateX(62deg) rotateZ(-9deg);
+  transform-style: preserve-3d;
+}
+
+.fluxrouter-home .portal::before {
+  position: absolute;
+  inset: 17%;
+  border-radius: 28%;
+  background:
+    linear-gradient(90deg, transparent 0 13%, rgba(125, 231, 255, 0.22) 14% 15%, transparent 16% 84%, rgba(125, 231, 255, 0.22) 85% 86%, transparent 87%),
+    linear-gradient(0deg, transparent 0 13%, rgba(125, 231, 255, 0.18) 14% 15%, transparent 16% 84%, rgba(125, 231, 255, 0.18) 85% 86%, transparent 87%);
+  box-shadow: inset 0 0 42px rgba(39, 200, 255, 0.16);
+  content: "";
+  transform: translateZ(-18px);
+}
+
+.fluxrouter-home .portal-ring,
+.fluxrouter-home .portal-core {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+.fluxrouter-home .portal-ring {
+  border: 2px solid rgba(154, 247, 255, 0.62);
+  box-shadow:
+    0 0 28px rgba(25, 230, 255, 0.56),
+    0 0 70px rgba(255, 47, 214, 0.16),
+    inset 0 0 34px rgba(25, 230, 255, 0.24);
+}
+
+.fluxrouter-home .ring-outer {
+  background:
+    conic-gradient(from 40deg, transparent 0 9deg, rgba(154, 247, 255, 0.98) 10deg 17deg, transparent 18deg 31deg, rgba(255, 47, 214, 0.78) 32deg 42deg, transparent 43deg 70deg),
+    radial-gradient(circle, transparent 52%, rgba(30, 146, 255, 0.22) 53% 62%, transparent 63%);
+  mask: radial-gradient(circle, transparent 0 55%, #000 56% 64%, transparent 65%);
+  animation: fluxrouterSpinPortal 14s linear infinite;
+}
+
+.fluxrouter-home .ring-mid {
+  inset: 8%;
+  border-style: dashed;
+  opacity: 0.86;
+  animation: fluxrouterSpinPortal 9s linear infinite reverse;
+}
+
+.fluxrouter-home .ring-inner {
+  inset: 20%;
+  opacity: 0.78;
+  background: conic-gradient(from 120deg, transparent, rgba(39, 200, 255, 0.6), transparent 24%, rgba(125, 231, 255, 0.9), transparent 42%);
+  mask: radial-gradient(circle, transparent 0 61%, #000 62% 67%, transparent 68%);
+  animation: fluxrouterSpinPortal 7s linear infinite;
+}
+
+.fluxrouter-home .portal-core {
+  inset: 26%;
+  background:
+    radial-gradient(circle at 62% 52%, rgba(255, 255, 255, 0.96), transparent 12%),
+    radial-gradient(circle, rgba(25, 230, 255, 0.58), rgba(255, 47, 214, 0.16) 38%, transparent 60%);
+  box-shadow:
+    0 0 110px rgba(25, 230, 255, 0.82),
+    0 0 70px rgba(255, 47, 214, 0.22);
+  transform: translateZ(-42px);
+}
+
+.fluxrouter-home .portal-core span {
+  position: absolute;
+  inset: 28%;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(154, 247, 255, 0.7);
+  border-radius: 18%;
+  background:
+    linear-gradient(135deg, rgba(125, 231, 255, 0.26), rgba(18, 103, 255, 0.16)),
+    repeating-linear-gradient(90deg, transparent 0 13px, rgba(125, 231, 255, 0.14) 14px 15px),
+    repeating-linear-gradient(0deg, transparent 0 13px, rgba(125, 231, 255, 0.1) 14px 15px),
+    #06182b;
+  box-shadow:
+    inset 0 0 32px rgba(25, 230, 255, 0.25),
+    0 0 26px rgba(25, 230, 255, 0.5),
+    7px 7px 0 rgba(255, 47, 214, 0.12);
+  animation: fluxrouterFloatPlanet 6s ease-in-out infinite;
+}
+
+.fluxrouter-home .portal-core span::before {
+  color: var(--cyan-bright);
+  content: "API";
+  font-size: clamp(2rem, 5vw, 4.4rem);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-shadow:
+    0 0 20px var(--cyan),
+    3px 0 0 rgba(255, 47, 214, 0.45);
+  animation: fluxrouterTextFlicker 2.8s infinite;
+}
+
+.fluxrouter-home .data-runway {
+  position: absolute;
+  right: 0;
+  bottom: 2vh;
+  left: 8vw;
+  height: 34vh;
+  background:
+    linear-gradient(93deg, transparent 0 18%, rgba(25, 230, 255, 0.36) 49%, transparent 82%),
+    repeating-linear-gradient(97deg, transparent 0 34px, rgba(154, 247, 255, 0.2) 35px 38px),
+    repeating-linear-gradient(0deg, transparent 0 18px, rgba(255, 47, 214, 0.08) 19px 20px),
+    linear-gradient(180deg, rgba(5, 25, 42, 0.15), rgba(1, 5, 10, 0.86));
+  clip-path: polygon(30% 0, 75% 0, 100% 100%, 0 100%);
+  transform: perspective(700px) rotateX(62deg);
+  transform-origin: bottom;
+  opacity: 0.78;
+}
+
+.fluxrouter-home .data-runway span {
+  position: absolute;
+  bottom: 18%;
+  width: 18%;
+  height: 8px;
+  background: linear-gradient(90deg, transparent, var(--cyan-bright), transparent);
+  box-shadow: var(--glow);
+  animation: fluxrouterRunwayPulse 2.4s ease-in-out infinite;
+}
+
+.fluxrouter-home .data-runway span:nth-child(1) {
+  left: 14%;
+}
+
+.fluxrouter-home .data-runway span:nth-child(2) {
+  left: 44%;
+  animation-delay: 0.4s;
+}
+
+.fluxrouter-home .data-runway span:nth-child(3) {
+  left: 68%;
+  animation-delay: 0.8s;
+}
+
+.fluxrouter-home .token-orb {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(154, 247, 255, 0.78);
+  color: var(--cyan-bright);
+  background:
+    linear-gradient(135deg, rgba(125, 231, 255, 0.18), rgba(18, 103, 255, 0.08)),
+    repeating-linear-gradient(90deg, transparent 0 9px, rgba(125, 231, 255, 0.12) 10px 11px),
+    radial-gradient(circle at 35% 30%, rgba(215, 247, 255, 0.28), rgba(6, 29, 50, 0.92) 58%, #030810 100%);
+  box-shadow:
+    inset 0 0 28px rgba(25, 230, 255, 0.2),
+    0 0 30px rgba(25, 230, 255, 0.42),
+    0 0 22px rgba(255, 47, 214, 0.18);
+  font-size: 1.08rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-shadow: 0 0 12px var(--cyan);
+}
+
+.fluxrouter-home .token-orb::before,
+.fluxrouter-home .token-orb::after {
+  position: absolute;
+  inset: -8px;
+  border: 1px solid rgba(125, 231, 255, 0.28);
+  border-radius: inherit;
+  content: "";
+}
+
+.fluxrouter-home .token-orb::after {
+  inset: 10px;
+  border-style: dashed;
+}
+
+.fluxrouter-home .token-top {
+  right: 31vw;
+  top: 3vh;
+  width: 84px;
+  height: 84px;
+  animation: fluxrouterFloatPlanet 7s ease-in-out infinite;
+}
+
+.fluxrouter-home .token-mid {
+  left: 8vw;
+  top: 54%;
+  width: 54px;
+  height: 54px;
+  opacity: 0.78;
+  animation: fluxrouterFloatPlanet 5.6s ease-in-out infinite reverse;
+}
+
+.fluxrouter-home .hud {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  gap: 3px;
+  min-width: 170px;
+  color: var(--cyan-bright);
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-shadow: 0 0 16px rgba(39, 200, 255, 0.78);
+}
+
+.fluxrouter-home .hud-left {
+  left: 0;
+  top: 8%;
+}
+
+.fluxrouter-home .hud-right {
+  right: 2%;
+  top: 15%;
+}
+
+.fluxrouter-home .hud-number {
+  font-size: clamp(1.9rem, 3vw, 3rem);
+}
+
+.fluxrouter-home .hud-label {
+  color: rgba(165, 222, 247, 0.74);
+  font-size: 0.76rem;
+}
+
+.fluxrouter-home .hud i {
+  display: block;
+  width: 100%;
+  height: 35px;
+  margin-top: 8px;
+  border-top: 1px solid rgba(125, 231, 255, 0.46);
+  border-right: 1px solid rgba(125, 231, 255, 0.18);
+  background: repeating-linear-gradient(90deg, rgba(25, 230, 255, 0.82) 0 4px, transparent 4px 12px);
+  opacity: 0.68;
+}
+
+.fluxrouter-home .signal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: -36px;
+}
+
+.fluxrouter-home .glass-card {
+  position: relative;
+  overflow: hidden;
+  padding: 26px;
+  clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 22px 100%, 0 calc(100% - 22px));
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.58s ease,
+    transform 0.58s ease,
+    border-color 0.24s ease,
+    box-shadow 0.24s ease;
+}
+
+.fluxrouter-home .glass-card::after {
+  position: absolute;
+  top: 0;
+  right: 18px;
+  width: 54px;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--pink), var(--cyan));
+  box-shadow: 0 0 18px var(--cyan);
+  content: "";
+}
+
+.fluxrouter-home .glass-card::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 0 38%, rgba(154, 247, 255, 0.16) 50%, transparent 62%);
+  content: "";
+  transform: translateX(-110%);
+  animation: fluxrouterCardSweep 5s ease-in-out infinite;
+}
+
+.fluxrouter-home .card-kicker {
+  display: inline-flex;
+  margin-bottom: 16px;
+  font-size: 0.82rem;
+}
+
+.fluxrouter-home .glass-card h2 {
+  margin-bottom: 10px;
+  font-family: "ZCOOL QingKe HuangYou", "Rajdhani", system-ui, sans-serif;
+  font-size: clamp(1.8rem, 3vw, 2.55rem);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 18px rgba(25, 230, 255, 0.22);
+}
+
+.fluxrouter-home .glass-card p {
+  margin-bottom: 22px;
+  color: #9bbdd2;
+  font-family: "ZCOOL QingKe HuangYou", "Rajdhani", system-ui, sans-serif;
+  line-height: 1.72;
+  letter-spacing: 0.06em;
+}
+
+.fluxrouter-home .meter {
+  height: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(154, 247, 255, 0.3);
+  background: rgba(1, 8, 16, 0.66);
+}
+
+.fluxrouter-home .meter span {
+  display: block;
+  width: var(--value);
+  height: 100%;
+  background: linear-gradient(90deg, #0b71ff, #19e6ff, #55ffb7, #ff2fd6);
+  box-shadow: 0 0 18px rgba(25, 230, 255, 0.9);
+  animation: fluxrouterMeterGlow 2.2s ease-in-out infinite;
+}
+
+.fluxrouter-home .featured-card {
+  border-color: rgba(255, 47, 214, 0.58);
+  box-shadow:
+    0 0 36px rgba(255, 47, 214, 0.18),
+    0 0 58px rgba(25, 230, 255, 0.12),
+    inset 0 0 32px rgba(255, 47, 214, 0.06);
+  transform: translateY(22px) scale(1.03);
+}
+
+.fluxrouter-home .featured-card.is-visible {
+  transform: translateY(0) scale(1.03);
+}
+
+.fluxrouter-home .launch-panel {
+  display: grid;
+  grid-template-columns: 0.7fr 1.3fr;
+  gap: 26px;
+  margin-top: 22px;
+  padding: clamp(24px, 4vw, 42px);
+}
+
+.fluxrouter-home .module-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.fluxrouter-home .module-card {
+  position: relative;
+  min-height: 150px;
+  padding: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(154, 247, 255, 0.32);
+  background:
+    linear-gradient(145deg, rgba(10, 49, 82, 0.76), rgba(3, 15, 27, 0.72)),
+    repeating-linear-gradient(90deg, transparent 0 16px, rgba(154, 247, 255, 0.055) 17px);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%);
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.58s ease,
+    transform 0.58s ease,
+    border-color 0.24s ease,
+    box-shadow 0.24s ease;
+}
+
+.fluxrouter-home .glass-card.is-visible,
+.fluxrouter-home .module-card.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fluxrouter-home .module-card::after {
+  position: absolute;
+  right: -28px;
+  bottom: -28px;
+  width: 82px;
+  height: 82px;
+  border: 1px solid rgba(154, 247, 255, 0.46);
+  border-radius: 50%;
+  box-shadow: inset 0 0 24px rgba(39, 200, 255, 0.18);
+  content: "";
+}
+
+.fluxrouter-home .module-card:hover,
+.fluxrouter-home .module-card:focus-visible {
+  border-color: rgba(154, 247, 255, 0.95);
+  box-shadow:
+    0 0 34px rgba(25, 230, 255, 0.38),
+    0 0 32px rgba(255, 47, 214, 0.18);
+  transform: translateY(-6px);
+}
+
+.fluxrouter-home .module-card span {
+  display: block;
+  color: var(--pink);
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.fluxrouter-home .module-card strong {
+  display: block;
+  margin-top: 28px;
+  font-family: "ZCOOL QingKe HuangYou", "Rajdhani", system-ui, sans-serif;
+  font-size: 1.45rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 18px rgba(25, 230, 255, 0.28);
+}
+
+.fluxrouter-home .module-card small {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+@keyframes fluxrouterSpinPortal {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fluxrouterFloatPlanet {
+  50% {
+    transform: translate3d(10px, -18px, 0) scale(1.04);
+  }
+}
+
+@keyframes fluxrouterDriftStars {
+  to {
+    background-position:
+      140px 280px,
+      -220px 220px;
+  }
+}
+
+@keyframes fluxrouterRunwayPulse {
+  50% {
+    opacity: 0.25;
+    transform: translateY(-8px) scaleX(0.72);
+  }
+}
+
+@keyframes fluxrouterCardSweep {
+  48%,
+  100% {
+    transform: translateX(115%);
+  }
+}
+
+@keyframes fluxrouterRainDrop {
+  to {
+    transform: translateY(calc(100vh + 240px));
+  }
+}
+
+@keyframes fluxrouterBeamSweep {
+  0%,
+  100% {
+    opacity: 0.08;
+    filter: blur(1px);
+  }
+
+  45%,
+  55% {
+    opacity: 0.9;
+    filter: blur(0);
+  }
+}
+
+@keyframes fluxrouterScanMove {
+  to {
+    --scan-y: 100vh;
+  }
+}
+
+@keyframes fluxrouterNoiseShift {
+  50% {
+    transform: translate(2px, -2px);
+  }
+}
+
+@keyframes fluxrouterGlitchSlice {
+  0%,
+  86%,
+  100% {
+    opacity: 0;
+  }
+
+  87%,
+  91% {
+    opacity: 0.86;
+  }
+
+  89% {
+    transform: translate(-8px, 2px);
+  }
+}
+
+@keyframes fluxrouterTextFlicker {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  48% {
+    opacity: 0.72;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  52% {
+    opacity: 0.82;
+  }
+}
+
+@keyframes fluxrouterTerminalHover {
+  50% {
+    transform: rotate(-3deg) translateY(-12px);
+  }
+}
+
+@keyframes fluxrouterMeterGlow {
+  50% {
+    filter: saturate(1.5) brightness(1.2);
+  }
+}
+
+@media (max-width: 1040px) {
+  .fluxrouter-home .hero {
+    grid-template-columns: 1fr;
+    padding-top: 48px;
+  }
+
+  .fluxrouter-home .hero-copy {
+    max-width: 780px;
+  }
+
+  .fluxrouter-home .portal-wrap {
+    min-height: 520px;
+    margin-top: -60px;
+  }
+
+  .fluxrouter-home .terminal-card {
+    left: 2vw;
+    top: 5%;
+  }
+
+  .fluxrouter-home .portal {
+    right: 10vw;
+    width: min(72vw, 560px);
+  }
+
+  .fluxrouter-home .signal-grid,
+  .fluxrouter-home .launch-panel,
+  .fluxrouter-home .module-list {
+    grid-template-columns: 1fr;
+  }
+
+  .fluxrouter-home .signal-grid {
+    margin-top: 12px;
+  }
+}
+
+@media (max-width: 720px) {
+  .fluxrouter-home {
+    padding: 18px 14px 34px;
+  }
+
+  .fluxrouter-home .topbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .fluxrouter-home .nav-links {
+    justify-content: space-between;
+    width: 100%;
+    font-size: 0.92rem;
+  }
+
+  .fluxrouter-home .hero {
+    min-height: auto;
+  }
+
+  .fluxrouter-home h1 {
+    font-size: clamp(3.4rem, 17vw, 5.8rem);
+  }
+
+  .fluxrouter-home .hero-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .fluxrouter-home .station-btn {
+    width: 100%;
+  }
+
+  .fluxrouter-home .portal-wrap {
+    min-height: 390px;
+  }
+
+  .fluxrouter-home .terminal-card {
+    display: none;
+  }
+
+  .fluxrouter-home .portal {
+    right: 0;
+    width: 96vw;
+  }
+
+  .fluxrouter-home .hud {
+    display: none;
+  }
+
+  .fluxrouter-home .token-top {
+    right: 10vw;
+  }
+
+  .fluxrouter-home .data-runway {
+    left: -16vw;
+    right: -18vw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fluxrouter-home *,
+  .fluxrouter-home *::before,
+  .fluxrouter-home *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .fluxrouter-home .glass-card,
+  .fluxrouter-home .module-card {
+    opacity: 1;
+    transform: none;
+  }
+}

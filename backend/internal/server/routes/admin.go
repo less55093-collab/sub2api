@@ -62,6 +62,9 @@ func RegisterAdminRoutes(
 		// 系统设置
 		registerSettingsRoutes(admin, h)
 
+		// 模型广场配置
+		registerModelMarketRoutes(admin, h)
+
 		// 数据管理
 		registerDataManagementRoutes(admin, h)
 
@@ -106,6 +109,14 @@ func RegisterAdminRoutes(
 
 		// 邀请返利（专属用户管理）
 		registerAffiliateRoutes(admin, h)
+	}
+}
+
+func registerModelMarketRoutes(admin *gin.RouterGroup, h *handler.Handlers) {
+	modelMarket := admin.Group("/model-market")
+	{
+		modelMarket.GET("/config", h.ModelMarket.AdminConfig)
+		modelMarket.PUT("/config", h.ModelMarket.UpdateAdminConfig)
 	}
 }
 

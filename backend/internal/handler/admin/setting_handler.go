@@ -225,6 +225,7 @@ func (h *SettingHandler) GetSettings(c *gin.Context) {
 		TablePageSizeOptions:                   settings.TablePageSizeOptions,
 		CustomMenuItems:                        dto.ParseCustomMenuItems(settings.CustomMenuItems),
 		CustomEndpoints:                        dto.ParseCustomEndpoints(settings.CustomEndpoints),
+		Chats:                                  dto.ParseChatPresets(settings.Chats),
 		DefaultConcurrency:                     settings.DefaultConcurrency,
 		DefaultBalance:                         settings.DefaultBalance,
 		RiskControlEnabled:                     settings.RiskControlEnabled,
@@ -517,6 +518,7 @@ type UpdateSettingsRequest struct {
 	TablePageSizeOptions        []int                 `json:"table_page_size_options"`
 	CustomMenuItems             *[]dto.CustomMenuItem `json:"custom_menu_items"`
 	CustomEndpoints             *[]dto.CustomEndpoint `json:"custom_endpoints"`
+	Chats                       *[]dto.ChatPreset     `json:"chats"`
 
 	// 默认配置
 	DefaultConcurrency                        int                               `json:"default_concurrency"`
@@ -1428,6 +1430,51 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		customEndpointsJSON = string(endpointBytes)
 	}
 
+	// 聊天预设验证。URL 可以是 http(s)、自定义协议或包含 new-api 兼容占位符。
+	const (
+		maxChatPresets     = 20
+		maxChatNameLen     = 50
+		maxChatURLLen      = 2048
+		maxChatPresetIDLen = 64
+	)
+
+	chatsJSON := previousSettings.Chats
+	if req.Chats != nil {
+		chats := *req.Chats
+		if len(chats) > maxChatPresets {
+			response.BadRequest(c, "Too many chat presets (max 20)")
+			return
+		}
+		for _, chat := range chats {
+			if strings.TrimSpace(chat.Name) == "" {
+				response.BadRequest(c, "Chat preset name is required")
+				return
+			}
+			if len(chat.Name) > maxChatNameLen {
+				response.BadRequest(c, "Chat preset name is too long (max 50 characters)")
+				return
+			}
+			if strings.TrimSpace(chat.URL) == "" {
+				response.BadRequest(c, "Chat preset URL is required")
+				return
+			}
+			if len(chat.URL) > maxChatURLLen {
+				response.BadRequest(c, "Chat preset URL is too long (max 2048 characters)")
+				return
+			}
+			if len(chat.ID) > maxChatPresetIDLen {
+				response.BadRequest(c, "Chat preset ID is too long (max 64 characters)")
+				return
+			}
+		}
+		var err error
+		chatsJSON, err = dto.MarshalChatPresets(chats)
+		if err != nil {
+			response.BadRequest(c, "Failed to serialize chat presets")
+			return
+		}
+	}
+
 	// Ops metrics collector interval validation (seconds).
 	if req.OpsMetricsIntervalSeconds != nil {
 		v := *req.OpsMetricsIntervalSeconds
@@ -1636,6 +1683,7 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		TablePageSizeOptions:                   req.TablePageSizeOptions,
 		CustomMenuItems:                        customMenuJSON,
 		CustomEndpoints:                        customEndpointsJSON,
+		Chats:                                  chatsJSON,
 		DefaultConcurrency:                     req.DefaultConcurrency,
 		DefaultBalance:                         req.DefaultBalance,
 		AffiliateRebateRate:                    affiliateRebateRate,
@@ -2120,6 +2168,7 @@ func (h *SettingHandler) UpdateSettings(c *gin.Context) {
 		TablePageSizeOptions:                   updatedSettings.TablePageSizeOptions,
 		CustomMenuItems:                        dto.ParseCustomMenuItems(updatedSettings.CustomMenuItems),
 		CustomEndpoints:                        dto.ParseCustomEndpoints(updatedSettings.CustomEndpoints),
+		Chats:                                  dto.ParseChatPresets(updatedSettings.Chats),
 		DefaultConcurrency:                     updatedSettings.DefaultConcurrency,
 		DefaultBalance:                         updatedSettings.DefaultBalance,
 		AffiliateRebateRate:                    updatedSettings.AffiliateRebateRate,
@@ -2628,6 +2677,9 @@ func diffSettings(before *service.SystemSettings, after *service.SystemSettings,
 	}
 	if before.CustomEndpoints != after.CustomEndpoints {
 		changed = append(changed, "custom_endpoints")
+	}
+	if before.Chats != after.Chats {
+		changed = append(changed, "chats")
 	}
 	if before.EnableFingerprintUnification != after.EnableFingerprintUnification {
 		changed = append(changed, "enable_fingerprint_unification")

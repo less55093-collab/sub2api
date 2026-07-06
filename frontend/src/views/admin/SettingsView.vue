@@ -5187,6 +5187,155 @@
                 </button>
               </div>
 
+              <!-- Chat Presets -->
+              <div>
+                <label
+                  class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  {{ t("admin.settings.site.chatPresets.title") }}
+                </label>
+                <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">
+                  {{ t("admin.settings.site.chatPresets.description") }}
+                </p>
+
+                <div class="space-y-3">
+                  <div
+                    v-for="(chat, index) in form.chats"
+                    :key="index"
+                    class="rounded-lg border border-gray-200 p-4 dark:border-dark-600"
+                  >
+                    <div class="mb-3 flex items-center justify-between">
+                      <span
+                        class="text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        {{
+                          t("admin.settings.site.chatPresets.itemLabel", {
+                            n: index + 1,
+                          })
+                        }}
+                      </span>
+                      <div class="flex items-center gap-2">
+                        <button
+                          v-if="index > 0"
+                          type="button"
+                          class="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-dark-700"
+                          :title="t('admin.settings.site.chatPresets.moveUp')"
+                          @click="moveChatPreset(index, -1)"
+                        >
+                          <svg
+                            class="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M5 15l7-7 7 7"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          v-if="index < form.chats.length - 1"
+                          type="button"
+                          class="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-dark-700"
+                          :title="t('admin.settings.site.chatPresets.moveDown')"
+                          @click="moveChatPreset(index, 1)"
+                        >
+                          <svg
+                            class="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          class="rounded p-1 text-red-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
+                          :title="t('admin.settings.site.chatPresets.remove')"
+                          @click="removeChatPreset(index)"
+                        >
+                          <svg
+                            class="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            stroke-width="2"
+                          >
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div>
+                        <label
+                          class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400"
+                        >
+                          {{ t("admin.settings.site.chatPresets.name") }}
+                        </label>
+                        <input
+                          v-model="chat.name"
+                          type="text"
+                          class="input text-sm"
+                          :placeholder="
+                            t('admin.settings.site.chatPresets.namePlaceholder')
+                          "
+                        />
+                      </div>
+                      <div>
+                        <label
+                          class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400"
+                        >
+                          {{ t("admin.settings.site.chatPresets.url") }}
+                        </label>
+                        <input
+                          v-model="chat.url"
+                          type="text"
+                          class="input font-mono text-sm"
+                          :placeholder="
+                            t('admin.settings.site.chatPresets.urlPlaceholder')
+                          "
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  class="mt-3 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 px-4 py-2.5 text-sm text-gray-500 transition-colors hover:border-primary-400 hover:text-primary-600 dark:border-dark-600 dark:text-gray-400 dark:hover:border-primary-500 dark:hover:text-primary-400"
+                  @click="addChatPreset"
+                >
+                  <svg
+                    class="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  {{ t("admin.settings.site.chatPresets.add") }}
+                </button>
+              </div>
+
               <!-- Contact Info -->
               <div>
                 <label
@@ -6280,7 +6429,7 @@
                       v-model="form.payment_product_name_prefix"
                       type="text"
                       class="input"
-                      placeholder="Sub2API"
+                      placeholder="FluxRouter"
                     />
                   </div>
                   <div>
@@ -6302,7 +6451,7 @@
                       class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600 dark:border-dark-600 dark:bg-dark-800 dark:text-gray-300"
                     >
                       {{
-                        (form.payment_product_name_prefix || "Sub2API") +
+                        (form.payment_product_name_prefix || "FluxRouter") +
                         " 100 " +
                         (form.payment_product_name_suffix || "CNY")
                       }}
@@ -7239,6 +7388,7 @@ import type {
 } from "@/api/admin/settings";
 import type {
   AdminGroup,
+  ChatPreset,
   LoginAgreementDocument,
   NotifyEmailEntry,
   Proxy,
@@ -7275,6 +7425,7 @@ import {
   defaultFingerprintSignalRows,
   type FingerprintSignalRow,
 } from "./codexFingerprintSignals";
+import { parseChatPresets } from "@/utils/chatLinks";
 
 const { t, locale } = useI18n();
 const appStore = useAppStore();
@@ -7903,6 +8054,7 @@ type SettingsForm = Omit<
   google_oauth_client_secret: string;
   force_email_on_third_party_signup: boolean;
   openai_advanced_scheduler_enabled: boolean;
+  chats: ChatPreset[];
   // 系统全局平台限额 map；form 内始终归一化为全 4 平台对象（模板非空绑定依赖此不变量）
   default_platform_quotas: DefaultPlatformQuotasMap;
 };
@@ -7930,7 +8082,7 @@ const form = reactive<SettingsForm>({
   default_subscriptions: [],
   force_email_on_third_party_signup: false,
   default_user_rpm_limit: 0,
-  site_name: "Sub2API",
+  site_name: "FluxRouter",
   site_logo: "",
   site_subtitle: "Subscription to API Conversion Platform",
   api_base_url: "",
@@ -7978,6 +8130,7 @@ const form = reactive<SettingsForm>({
     endpoint: string;
     description: string;
   }>,
+  chats: [] as ChatPreset[],
   frontend_url: "",
   smtp_host: "",
   smtp_port: 587,
@@ -8636,6 +8789,31 @@ function removeEndpoint(index: number) {
   form.custom_endpoints.splice(index, 1);
 }
 
+function addChatPreset() {
+  form.chats.push({ name: "", url: "" });
+}
+
+function removeChatPreset(index: number) {
+  form.chats.splice(index, 1);
+}
+
+function moveChatPreset(index: number, direction: -1 | 1) {
+  const targetIndex = index + direction;
+  if (targetIndex < 0 || targetIndex >= form.chats.length) return;
+  const items = form.chats;
+  const temp = items[index];
+  items[index] = items[targetIndex];
+  items[targetIndex] = temp;
+}
+
+function normalizeChatPresetsForForm(raw: unknown): ChatPreset[] {
+  return parseChatPresets(raw).map((item) => ({
+    id: item.id,
+    name: item.name,
+    url: item.url,
+  }));
+}
+
 function addLoginAgreementDocument() {
   form.login_agreement_documents.push({
     id: `custom-${Date.now().toString(36)}`,
@@ -8830,6 +9008,7 @@ async function loadSettings() {
     form.default_subscriptions = normalizeDefaultSubscriptionSettings(
       settings.default_subscriptions,
     );
+    form.chats = normalizeChatPresetsForForm(settings.chats);
     registrationEmailSuffixWhitelistTags.value =
       normalizeRegistrationEmailSuffixDomains(
         settings.registration_email_suffix_whitelist,
@@ -9036,6 +9215,7 @@ async function saveSettings() {
 
     form.table_default_page_size = normalizedTableDefaultPageSize;
     form.table_page_size_options = normalizedTablePageSizeOptions;
+    form.chats = normalizeChatPresetsForForm(form.chats);
 
     const normalizedLoginAgreementDocuments =
       normalizeLoginAgreementDocumentsForSave();
@@ -9187,6 +9367,7 @@ async function saveSettings() {
       table_page_size_options: form.table_page_size_options,
       custom_menu_items: form.custom_menu_items,
       custom_endpoints: form.custom_endpoints,
+      chats: form.chats,
       frontend_url: form.frontend_url,
       smtp_host: form.smtp_host,
       smtp_port: form.smtp_port,

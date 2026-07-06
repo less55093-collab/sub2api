@@ -4,6 +4,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/Wei-Shaw/sub2api/internal/config"
@@ -76,6 +77,56 @@ func TestSettingService_GetPublicSettings_ExposesTablePreferences(t *testing.T) 
 	require.NoError(t, err)
 	require.Equal(t, 50, settings.TableDefaultPageSize)
 	require.Equal(t, []int{20, 50, 100}, settings.TablePageSizeOptions)
+}
+
+func TestSettingService_GetPublicSettings_ExposesChats(t *testing.T) {
+	repo := &settingPublicRepoStub{
+		values: map[string]string{
+			SettingKeyChats: `[{"Cherry":"https://chat.example.com/?key={key}"}]`,
+		},
+	}
+	svc := NewSettingService(repo, &config.Config{})
+
+	settings, err := svc.GetPublicSettings(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, `[{"Cherry":"https://chat.example.com/?key={key}"}]`, settings.Chats)
+}
+
+func TestSettingService_GetPublicSettingsForInjection_IncludesChats(t *testing.T) {
+	repo := &settingPublicRepoStub{
+		values: map[string]string{
+			SettingKeyChats: `[{"Cherry":"https://chat.example.com/?key={key}"}]`,
+		},
+	}
+	svc := NewSettingService(repo, &config.Config{})
+
+	payload, err := svc.GetPublicSettingsForInjection(context.Background())
+	require.NoError(t, err)
+
+	injection := payload.(*PublicSettingsInjectionPayload)
+	var got []map[string]string
+	require.NoError(t, json.Unmarshal(injection.Chats, &got))
+	require.Equal(t, []map[string]string{{"Cherry": "https://chat.example.com/?key={key}"}}, got)
+}
+
+func TestSettingService_GetFrameSrcOrigins_IncludesChatPresetHTTPOrigins(t *testing.T) {
+	repo := &settingPublicRepoStub{
+		values: map[string]string{
+			SettingKeyHomeContent:                 "https://home.example.com/embed",
+			SettingKeyPurchaseSubscriptionEnabled: "true",
+			SettingKeyPurchaseSubscriptionURL:     "https://billing.example.com/pay",
+			SettingKeyChats:                       `[{"Cherry":"https://chat.example.com/?key={key}"},{"Fluent":"fluent://chat?key={key}"},{"Typed":"https://chat.example.com/path"}]`,
+		},
+	}
+	svc := NewSettingService(repo, &config.Config{})
+
+	origins, err := svc.GetFrameSrcOrigins(context.Background())
+	require.NoError(t, err)
+	require.Equal(t, []string{
+		"https://home.example.com",
+		"https://billing.example.com",
+		"https://chat.example.com",
+	}, origins)
 }
 
 func TestSettingService_GetPublicSettings_ExposesForceEmailOnThirdPartySignup(t *testing.T) {

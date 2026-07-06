@@ -129,6 +129,17 @@ func TestSettingService_UpdateSettings_DefaultSubscriptions_ValidGroup(t *testin
 	}, got)
 }
 
+func TestSettingService_UpdateSettings_PersistsChats(t *testing.T) {
+	repo := &settingUpdateRepoStub{}
+	svc := NewSettingService(repo, &config.Config{})
+
+	err := svc.UpdateSettings(context.Background(), &SystemSettings{
+		Chats: `[{"Cherry":"https://chat.example.com/?key={key}"}]`,
+	})
+	require.NoError(t, err)
+	require.Equal(t, `[{"Cherry":"https://chat.example.com/?key={key}"}]`, repo.updates[SettingKeyChats])
+}
+
 func TestSettingService_UpdateSettings_DefaultSubscriptions_RejectsNonSubscriptionGroup(t *testing.T) {
 	repo := &settingUpdateRepoStub{}
 	groupReader := &defaultSubGroupReaderStub{

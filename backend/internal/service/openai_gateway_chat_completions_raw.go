@@ -163,7 +163,7 @@ func (s *OpenAIGatewayService) forwardAsRawChatCompletions(
 	if customUA != "" {
 		upstreamReq.Header.Set("user-agent", customUA)
 	} else if account.Platform == PlatformGrok {
-		upstreamReq.Header.Set("user-agent", "sub2api-grok/1.0")
+		upstreamReq.Header.Set("user-agent", "fluxrouter-grok/1.0")
 	}
 
 	// 6. Send request

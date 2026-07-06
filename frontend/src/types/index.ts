@@ -1,5 +1,5 @@
 /**
- * Core Type Definitions for Sub2API Frontend
+ * Core Type Definitions for FluxRouter Frontend
  */
 
 // ==================== Common Types ====================
@@ -180,6 +180,15 @@ export interface CustomEndpoint {
   description: string
 }
 
+export interface ChatPreset {
+  id?: string
+  name: string
+  url: string
+}
+
+export type LegacyChatPreset = Record<string, string>
+export type RawChatPreset = ChatPreset | LegacyChatPreset
+
 export interface LoginAgreementDocument {
   id: string
   title: string
@@ -215,6 +224,7 @@ export interface PublicSettings {
   table_page_size_options: number[]
   custom_menu_items: CustomMenuItem[]
   custom_endpoints: CustomEndpoint[]
+  chats?: RawChatPreset[]
   linuxdo_oauth_enabled: boolean
   dingtalk_oauth_enabled?: boolean
   wechat_oauth_enabled: boolean

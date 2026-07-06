@@ -25,6 +25,13 @@ type CustomEndpoint struct {
 	Description string `json:"description"`
 }
 
+// ChatPreset represents an admin-configured chat entry.
+type ChatPreset struct {
+	ID   string `json:"id,omitempty"`
+	Name string `json:"name"`
+	URL  string `json:"url"`
+}
+
 // SystemSettings represents the admin settings API response payload.
 type SystemSettings struct {
 	RegistrationEnabled              bool                     `json:"registration_enabled"`
@@ -141,6 +148,7 @@ type SystemSettings struct {
 	TablePageSizeOptions        []int            `json:"table_page_size_options"`
 	CustomMenuItems             []CustomMenuItem `json:"custom_menu_items"`
 	CustomEndpoints             []CustomEndpoint `json:"custom_endpoints"`
+	Chats                       []ChatPreset     `json:"chats"`
 
 	DefaultConcurrency           int                          `json:"default_concurrency"`
 	DefaultBalance               float64                      `json:"default_balance"`
@@ -307,6 +315,7 @@ type PublicSettings struct {
 	TablePageSizeOptions             []int                    `json:"table_page_size_options"`
 	CustomMenuItems                  []CustomMenuItem         `json:"custom_menu_items"`
 	CustomEndpoints                  []CustomEndpoint         `json:"custom_endpoints"`
+	Chats                            []ChatPreset             `json:"chats"`
 	DingTalkOAuthEnabled             bool                     `json:"dingtalk_oauth_enabled"`
 	LinuxDoOAuthEnabled              bool                     `json:"linuxdo_oauth_enabled"`
 	WeChatOAuthEnabled               bool                     `json:"wechat_oauth_enabled"`
@@ -506,4 +515,69 @@ func ParseCustomEndpoints(raw string) []CustomEndpoint {
 		return []CustomEndpoint{}
 	}
 	return items
+}
+
+// ParseChatPresets parses the chat preset setting. It accepts both sub2api's
+// typed shape and new-api's [{"Name":"url"}] shape.
+func ParseChatPresets(raw string) []ChatPreset {
+	raw = strings.TrimSpace(raw)
+	if raw == "" || raw == "[]" {
+		return []ChatPreset{}
+	}
+
+	var entries []json.RawMessage
+	if err := json.Unmarshal([]byte(raw), &entries); err != nil {
+		return []ChatPreset{}
+	}
+
+	out := make([]ChatPreset, 0, len(entries))
+	for _, entry := range entries {
+		var typed ChatPreset
+		if err := json.Unmarshal(entry, &typed); err == nil {
+			name := strings.TrimSpace(typed.Name)
+			url := strings.TrimSpace(typed.URL)
+			if name != "" && url != "" {
+				typed.Name = name
+				typed.URL = url
+				out = append(out, typed)
+				continue
+			}
+		}
+
+		var legacy map[string]string
+		if err := json.Unmarshal(entry, &legacy); err != nil || len(legacy) != 1 {
+			continue
+		}
+		for name, url := range legacy {
+			name = strings.TrimSpace(name)
+			url = strings.TrimSpace(url)
+			if name == "" || url == "" {
+				continue
+			}
+			out = append(out, ChatPreset{Name: name, URL: url})
+		}
+	}
+	return out
+}
+
+// MarshalChatPresets stores presets in new-api's compatible one-key object
+// format so existing chat config snippets can be reused.
+func MarshalChatPresets(items []ChatPreset) (string, error) {
+	legacy := make([]map[string]string, 0, len(items))
+	for _, item := range items {
+		name := strings.TrimSpace(item.Name)
+		url := strings.TrimSpace(item.URL)
+		if name == "" || url == "" {
+			continue
+		}
+		legacy = append(legacy, map[string]string{name: url})
+	}
+	if len(legacy) == 0 {
+		return "[]", nil
+	}
+	data, err := json.Marshal(legacy)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
 }

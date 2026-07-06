@@ -1,5 +1,5 @@
 /**
- * API Client for Sub2API Backend
+ * API Client for FluxRouter Backend
  * Central export point for all API modules
  */
 
@@ -18,8 +18,22 @@ export { paymentAPI } from './payment'
 export { userGroupsAPI } from './groups'
 export { userChannelsAPI } from './channels'
 export { totpAPI } from './totp'
+export { playgroundAPI } from './playground'
 export { default as announcementsAPI } from './announcements'
 export { channelMonitorUserAPI } from './channelMonitor'
+export {
+  imageAPI,
+  type ImageGenerationRequest,
+  type ImageEditRequest,
+  type ImageResultItem,
+  type ImageGenerationResponse,
+  type ImageRequestDebugInfo,
+  type ImageQuality,
+  ImageRequestError,
+  buildImageGatewayEndpoint,
+  maskImageAPIKey,
+  proxyImage,
+} from './image'
 
 // Admin APIs
 export { adminAPI } from './admin'
